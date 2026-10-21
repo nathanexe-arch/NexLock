@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Next Lock PRO - Portal do Aluno</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+        :root {
+            --bg-dark: #03050a;
+            --bg-card: #090e1a;
+            --bg-card-hover: #10172a;
+            --sidebar-bg: #020307;
+            
+            --primary: #a855f7;
+            --primary-glow: rgba(168, 85, 247, 0.4);
+            --accent-cyan: #06b6d4;
+            --accent-cyan-glow: rgba(6, 182, 212, 0.4);
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.3);
+            --danger: #ff2a5f;
+
+            --text-main: #f3f4f6;
+            --text-muted: #8b9bb4;
+            --border-color: #1a2336;
+            --border-radius: 16px;
+            --transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-main); font-size: 14px; line-height: 1.6; overflow: hidden; }
+
+        .app-container { display: flex; height: 100vh; width: 100vw; overflow: hidden; position: relative; }
+
+        /* Fundo com Grade Cibernética Sci-Fi */
+        .app-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(168, 85, 247, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(168, 85, 247, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Sidebar Esquerda */
+        .sidebar { width: 280px; background-color: var(--sidebar-bg); color: var(--text-muted); display: flex; flex-direction: column; justify-content: space-between; padding: 30px 20px; border-right: 1px solid var(--border-color); flex-shrink: 0; z-index: 10; }
+        .brand { display: flex; align-items: center; gap: 14px; padding-bottom: 24px; border-bottom: 1px solid var(--border-color); color: #ffffff; }
+        .brand-icon-glow { font-size: 26px; color: var(--primary); filter: drop-shadow(0 0 16px var(--primary)); }
+        .brand h2 { font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; }
+
+        .nav-menu { margin-top: 30px; display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
+        .nav-item { display: flex; align-items: center; gap: 14px; padding: 14px 18px; color: var(--text-muted); text-decoration: none; border-radius: var(--border-radius); font-weight: 600; transition: var(--transition); cursor: pointer; }
+        .nav-item i { font-size: 16px; width: 20px; color: var(--text-muted); transition: var(--transition); }
+        .nav-item:hover { background-color: rgba(168, 85, 247, 0.08); color: #ffffff; transform: translateX(6px); }
+        .nav-item:hover i { color: var(--primary); }
+        .nav-item.active { background: linear-gradient(135deg, #a855f7, #7e22ce); color: #ffffff; box-shadow: 0 8px 25px rgba(168, 85, 247, 0.5); }
+        .nav-item.active i { color: #ffffff; }
+        .sidebar-footer { padding-top: 20px; border-top: 1px solid var(--border-color); }
+
+        /* Conteúdo Principal */
+        .main-content { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; background: radial-gradient(circle at top right, #140b2e 0%, #03050a 70%); z-index: 1; }
+        .topbar { background-color: rgba(9, 14, 26, 0.85); backdrop-filter: blur(16px); padding: 24px 40px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .breadcrumb h1 { font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; }
+        .breadcrumb p { font-size: 13px; color: var(--text-muted); }
+
+        .system-status-pills { display: flex; gap: 12px; }
+        .status-pill { display: flex; align-items: center; gap: 8px; background: #03050a; border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .dot-green { width: 8px; height: 8px; border-radius: 50%; background-color: var(--success); box-shadow: 0 0 10px var(--success); }
+
+        .tab-content { display: none; animation: fadeInView 0.35s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeInView { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Cards e Formatação Rígida da Imagem */
+        .sim-card, .table-container { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 28px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); position: relative; overflow: hidden; }
+        .sim-card::before, .table-container::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, var(--primary), var(--accent-cyan), transparent); }
+
+        /* CORREÇÃO DA IMAGEM: TAMANHO MÁXIMO FIXO */
+        .team-photo-img {
+            width: 90px !important;
+            height: 90px !important;
+            max-width: 90px !important;
+            max-height: 90px !important;
+            border-radius: 50% !important;
+            object-fit: cover !important;
+            border: 2px solid var(--primary) !important;
+            box-shadow: 0 0 20px var(--primary-glow) !important;
+            margin: 0 auto 16px auto !important;
+            display: block !important;
+        }
+
+        .sim-card h3 { font-size: 16px; font-weight: 700; color: #ffffff; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .sim-card h3 i { color: var(--primary); }
+        .sim-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; letter-spacing: 0.5px; }
+        .form-group label i { color: var(--primary); }
+        .cyber-input { width: 100%; background: #03050a !important; border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 16px; color: #ffffff; font-size: 13px; outline: none; transition: var(--transition); }
+        .cyber-input:focus { border-color: var(--primary) !important; box-shadow: 0 0 20px var(--primary-glow) !important; }
+
+        .key-id-box { background: #03050a; border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 16px; width: 100%; margin-bottom: 16px; text-align: center; }
+        .key-id-box .label { display: block; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .key-id-box .code { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--accent-cyan); font-weight: 700; }
+
+        /* Botões */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 22px; border-radius: 12px; font-size: 13px; font-weight: 800; cursor: pointer; border: none; transition: var(--transition); text-decoration: none; letter-spacing: 0.5px; }
+        .btn-primary { background: linear-gradient(135deg, #a855f7, #7e22ce); color: #ffffff; box-shadow: 0 6px 20px var(--primary-glow); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(168, 85, 247, 0.6); }
+        .btn-secondary { background: var(--bg-card-hover); color: #ffffff; border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: var(--border-color); }
+        .btn-sm { padding: 8px 14px; font-size: 12px; border-radius: 8px; }
+
+        /* Tabelas */
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .data-table th { background: rgba(3, 5, 10, 0.9); padding: 18px 22px; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid var(--border-color); }
+        .data-table td { padding: 18px 22px; font-size: 13px; border-bottom: 1px solid var(--border-color); }
+        .status-badge { font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px; }
+        .status-badge.open { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+
+        .section-header { margin-bottom: 24px; }
+        .section-header h2 { font-size: 18px; font-weight: 800; color: #ffffff; margin-bottom: 4px; }
+        .section-header p { font-size: 13px; color: var(--text-muted); }
+        .text-center { text-align: center; }
+        .mb-3 { margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Menu Lateral Esquerdo -->
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="fa-solid fa-shield-halved brand-icon-glow"></i>
+                <h2>Next Lock</h2>
+                <span style="background: rgba(168,85,247,0.15); color: var(--primary); border: 1px solid var(--primary-glow); padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800;">ALUNO</span>
+            </div>
+            
+            <nav class="nav-menu">
+                <a class="nav-item active" onclick="switchTab('aluno-home', this)">
+                    <i class="fa-solid fa-user"></i> Meu Perfil
+                </a>
+                <a class="nav-item" onclick="switchTab('aluno-editar', this)">
+                    <i class="fa-solid fa-user-pen"></i> Editar Dados / Foto
+                </a>
+                <a class="nav-item" onclick="switchTab('aluno-historico', this)">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Histórico de Acessos
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="gestao.html" class="btn btn-secondary btn-sm" style="width: 100%;">
+                    <i class="fa-solid fa-user-shield"></i> Ir para Gestão
+                </a>
+            </div>
+        </aside>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <header class="topbar">
+                <div class="breadcrumb">
+                    <h1 id="topbarTitle">Portal do Aluno</h1>
+                    <p id="topbarSubtitle">Área acadêmica individual Next Lock</p>
+                </div>
+                <div class="system-status-pills">
+                    <div class="status-pill"><span class="dot-green"></span> Conectado ao ESP32</div>
+                </div>
+            </header>
+
+            <div style="padding: 40px;">
+                <!-- TÓPICO 1: MEU PERFIL -->
+                <section id="aluno-home" class="tab-content active">
+                    <div class="sim-card text-center" style="max-width: 420px; margin: 0 auto;">
+                        <img id="mainAvatarImg" src="Natan.jpg" class="team-photo-img" alt="Foto do Aluno">
+                        <h2 id="mainStudentName" style="color: #fff; margin-top: 10px;">NATHAN RAMOS MACEDO</h2>
+                        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 15px;">Estudante • ETEC</p>
+                        
+                        <div class="key-id-box mb-3">
+                            <span class="label">Sua Tag RFID Atribuída:</span>
+                            <span class="code" id="mainStudentTag">6C 29 16 06</span>
+                        </div>
+
+                        <button class="btn btn-primary" style="width: 100%;" onclick="requestRemoteUnlock()">
+                            <i class="fa-solid fa-key"></i> Solicitar Abertura Remota
+                        </button>
+                    </div>
+                </section>
+
+                <!-- TÓPICO 2: EDITAR PERFIL -->
+                <section id="aluno-editar" class="tab-content">
+                    <div class="sim-card" style="max-width: 500px; margin: 0 auto;">
+                        <h3><i class="fa-solid fa-user-pen"></i> Personalizar Perfil</h3>
+                        <p class="sim-desc">Atualize o seu nome e faça o upload da sua foto de exibição local.</p>
+
+                        <div class="form-group">
+                            <label for="selectStudentAccount"><i class="fa-solid fa-users"></i> Selecionar Conta do Aluno:</label>
+                            <select id="selectStudentAccount" class="cyber-input" onchange="loadStudentFormData()">
+                                <option value="natan">Nathan Ramos Macedo</option>
+                                <option value="joao">João Victor Santos Moreira</option>
+                                <option value="erick">Erick Jesus dos Santos Reis</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputStudentName"><i class="fa-solid fa-id-card"></i> Nome Completo de Exibição:</label>
+                            <input type="text" id="inputStudentName" class="cyber-input" value="NATHAN RAMOS MACEDO">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputStudentPhotoFile"><i class="fa-solid fa-image"></i> Foto de Perfil (Escolher Ficheiro Local):</label>
+                            <input type="file" id="inputStudentPhotoFile" class="cyber-input" accept="image/*" onchange="previewSelectedImage(event)">
+                        </div>
+
+                        <div class="form-group text-center mt-2">
+                            <label style="display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 11px;">PRÉ-VISUALIZAÇÃO</label>
+                            <img id="uploadPreviewImg" src="Natan.jpg" class="team-photo-img" alt="Preview">
+                        </div>
+
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="saveStudentFormData()">
+                            <i class="fa-solid fa-check"></i> Salvar Alterações no Perfil
+                        </button>
+                    </div>
+                </section>
+
+                <!-- TÓPICO 3: HISTÓRICO -->
+                <section id="aluno-historico" class="tab-content">
+                    <div class="section-header">
+                        <h2>Meu Histórico Pessoal de Acessos</h2>
+                        <p>Registro individual de acionamento das trancas vinculadas a você</p>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Horário</th>
+                                    <th>Armário</th>
+                                    <th>Tipo de Acesso</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentPersonalLog">
+                                <tr class="empty-row"><td colspan="4" style="text-align: center; color: var(--text-muted);">Nenhum acesso registrado recentemente.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const globalStudentsData = {
+            natan: { name: "NATHAN RAMOS MACEDO", tag: "6C 29 16 06", photo: "Natan.jpg" },
+            joao: { name: "JOÃO VICTOR SANTOS MOREIRA", tag: "1A BF F3 E1", photo: "" },
+            erick: { name: "ERICK JESUS DOS SANTOS REIS", tag: "0C B7 6A 06", photo: "erick.jpg" }
+        };
+
+        let tempUploadedImageBase64 = null;
+
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            
+            const target = document.getElementById(tabId);
+            if(target) target.classList.add('active');
+            if(element) element.classList.add('active');
+        }
+
+        function previewSelectedImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    tempUploadedImageBase64 = e.target.result;
+                    document.getElementById("uploadPreviewImg").src = tempUploadedImageBase64;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        /* FUNÇÃO DE ABERTURA REMOTA FUNCIONAL */
+        function requestRemoteUnlock() {
+            const now = new Date().toLocaleTimeString("pt-BR");
+            const tbody = document.getElementById("studentPersonalLog");
+            
+            if(tbody.querySelector(".empty-row")) {
+                tbody.innerHTML = "";
+            }
+            
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${now}</td><td><strong>Armário 01</strong></td><td>Solicitação Remota (App)</td><td><span class="status-badge open"><i class="fa-solid fa-circle-check"></i> Destravado</span></td>`;
+            tbody.insertBefore(tr, tbody.firstChild);
+
+            alert("Comando de abertura enviado com sucesso ao ESP32! O armário foi destravado.");
+        }
+
+        function loadStudentFormData() {
+            const key = document.getElementById("selectStudentAccount").value;
+            const data = globalStudentsData[key];
+            if(data) {
+                document.getElementById("inputStudentName").value = data.name;
+                document.getElementById("uploadPreviewImg").src = data.photo || "Natan.jpg";
+                tempUploadedImageBase64 = null;
+            }
+        }
+
+        function saveStudentFormData() {
+            const key = document.getElementById("selectStudentAccount").value;
+            const name = document.getElementById("inputStudentName").value;
+
+            if(globalStudentsData[key]) {
+                globalStudentsData[key].name = name;
+                if(tempUploadedImageBase64) {
+                    globalStudentsData[key].photo = tempUploadedImageBase64;
+                }
+                document.getElementById("mainStudentName").textContent = name;
+                document.getElementById("mainStudentTag").textContent = globalStudentsData[key].tag;
+                if(globalStudentsData[key].photo) {
+                    document.getElementById("mainAvatarImg").src = globalStudentsData[key].photo;
+                }
+            }
+            alert("Perfil atualizado com sucesso!");
+        }
+    </script>
+</body>
+</html>
